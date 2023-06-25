@@ -48,7 +48,6 @@ class InputViewer:
 
         if self.playing_offset + self.frame == self.last_line:
             self.finished = True
-            print(self.last_line)
 
         if not self.pre_finished:
             screen.blit(self.font.render("  RLDUTSBA", True, (100, 100, 100)), (50, y))
