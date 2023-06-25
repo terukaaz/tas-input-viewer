@@ -8,7 +8,6 @@ class InputViewer:
         self.playing_offset = 0
         self.frame = 0
         self.total_play_time_ms = 0.00
-        self.test_time_ms = 0.00
         self.input_file = "input.txt"
         self.current_line = ""
         self.file_contents = []
