@@ -1,6 +1,20 @@
 import datetime
 import pygame
 
+def get_inputs(line):
+
+    inputs = line.split("|")
+
+    real_inputs = []
+
+    for input in inputs:
+        if input == "" or input == "0" or input == "1" or input == "2" or input == "3" or input == "4" or input == "\n":
+            continue
+
+        real_inputs.append(input)
+
+    return real_inputs
+
 class InputViewer:
 
     def __init__(self, screen: pygame.Surface):
@@ -16,11 +30,13 @@ class InputViewer:
         self.pre_finished = False
         self.finished = False
         self.last_line = 0
+        self.player_count = 1
         self.run = True
 
         self.load()
 
     def load(self):
+
         # this works only with .fm2!!
 
         with open(self.input_file) as f:
@@ -29,8 +45,10 @@ class InputViewer:
             self.file_contents = contents
 
             for i in range(len(contents)):
-                if contents[i].startswith("|0|"):
+                if contents[i].endswith("||\n"):
                     self.playing_offset = i
+                    self.player_count = get_inputs(contents[i]).__len__()
+                    print(self.player_count)
                     break
                 else:
                     continue
@@ -48,8 +66,9 @@ class InputViewer:
         if self.playing_offset + self.frame == self.last_line:
             self.finished = True
 
-        if not self.pre_finished:
-            screen.blit(self.font.render("  RLDUTSBA", True, (100, 100, 100)), (50, y))
+        if not self.finished:
+            for k in range(self.player_count):
+                screen.blit(self.font.render("RLDUTSBA", True, (100, 100, 100)), (80 + (k * 170), y))
 
         # I hate Python
         try:
@@ -57,17 +76,17 @@ class InputViewer:
         except ValueError:
             t = datetime.datetime.strptime(str(datetime.timedelta(milliseconds=self.total_play_time_ms)), "%H:%M:%S")
 
-        screen.blit(self.font.render(f"           | {self.frame} / {t.strftime('%M:%S.%f')[:-3]}", True, (255, 255, 255)), (50, y))
+        screen.blit(self.font.render(f"| {self.frame} / {t.strftime('%M:%S.%f')[:-3]} {('(F)' if self.finished else '')}", True, (255, 255, 255)), (50 + self.player_count * 170, y))
 
         for i in range(30):
 
             try:
                 line = self.file_contents[i + self.playing_offset + self.frame - 1]
 
-                if not str(line).startswith("|0|"):
+                if not any(str(line).startswith(prefix) for prefix in ["|0|", "|1|", "|2|", "|3|", "|4|"]):
                     continue
 
-            except IndexError as e:
+            except IndexError:
 
                 if not self.pre_finished:
                     line = "Movie end"
@@ -80,14 +99,17 @@ class InputViewer:
             if i + self.playing_offset + self.frame - 1 == self.last_line:
                 line = "Movie end"
 
-            line = line.replace(".", " ").replace("|0|", "").replace("|||", "").replace("\n", "")
+            real_inputs = get_inputs(line)
 
-            if i == 0:
-                line = f"> {line}"
-            else:
-                line = f"  {line}"
+            for j in range(real_inputs.__len__()):
 
-            screen.blit(self.font.render(line, True, (255, 255, 255)), (50, y + i * 30))
+                display_inputs = real_inputs[j]
+
+                if j == 0 and i == 0:
+                    screen.blit(self.font.render(">", True, (255, 255, 255)), (50, y))
+
+                display_inputs = display_inputs.replace(".", " ")
+                screen.blit(self.font.render(display_inputs, True, (255, 255, 255)), (80 + (j * 170), y + i * 30))
 
         pygame.display.update()
 
@@ -99,6 +121,8 @@ class InputViewer:
                     self.run = False
                 elif event.key == pygame.K_SPACE or event.key == pygame.K_RETURN:
                     self.playing = not self.playing
+                elif event.key == pygame.K_r:
+                    self.frame = 0
 
     def update_time(self):
         if self.playing:
