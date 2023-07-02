@@ -15,6 +15,16 @@ def get_inputs(line):
 
     return real_inputs
 
+def get_player_color(player):
+    if player == 0:
+        return (255, 0, 0)
+    elif player == 1:
+        return (0, 255, 0)
+    elif player == 2:
+        return (255, 255, 0)
+    elif player == 3:
+        return (0, 255, 0)
+
 class InputViewer:
 
     def __init__(self, screen: pygame.Surface):
@@ -29,6 +39,7 @@ class InputViewer:
         self.playing = False
         self.pre_finished = False
         self.finished = False
+        self.compact_display = False
         self.last_line = 0
         self.player_count = 1
         self.run = True
@@ -38,6 +49,7 @@ class InputViewer:
     def load(self):
 
         # this works only with .fm2!!
+        print(f"Loading {self.input_file}")
 
         with open(self.input_file) as f:
 
@@ -48,12 +60,12 @@ class InputViewer:
                 if contents[i].endswith("||\n"):
                     self.playing_offset = i
                     self.player_count = get_inputs(contents[i]).__len__()
-                    print(self.player_count)
+                    print("Player count:", self.player_count)
                     break
                 else:
                     continue
 
-            print(f"Input playing detected @ pos {self.playing_offset}, (0 is first line)")
+            print(f"First input line detected @ pos {self.playing_offset}, (0 is first line)")
 
     def draw(self):
 
@@ -62,6 +74,10 @@ class InputViewer:
         screen.fill((0, 0, 0))
 
         y = 30
+
+        if self.compact_display:
+            self.player_count = 1 # so we can fit all input in one line
+
 
         if self.playing_offset + self.frame == self.last_line:
             self.finished = True
@@ -109,7 +125,7 @@ class InputViewer:
                     screen.blit(self.font.render(">", True, (255, 255, 255)), (50, y))
 
                 display_inputs = display_inputs.replace(".", " ")
-                screen.blit(self.font.render(display_inputs, True, (255, 255, 255)), (80 + (j * 170), y + i * 30))
+                screen.blit(self.font.render(display_inputs, True, get_player_color(j) if display_inputs != "Movie end" else (255, 255, 255)), (80 + ((j * 170) if not self.compact_display else 0), y + i * 30))
 
         pygame.display.update()
 
