@@ -5,7 +5,7 @@ import inputviewer
 
 pygame.init()
 
-NESClockFPS = 39375000 / 655171
+NESClockFPS = (1008307711 / 256) / 65536)
 clock = pygame.time.Clock()
 
 size = (0, 0)
